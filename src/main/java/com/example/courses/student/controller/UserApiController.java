@@ -4,7 +4,7 @@ import com.example.courses.student.dto.request.EditStudentRequest;
 import com.example.courses.student.dto.request.RegistrationRequest;
 import com.example.courses.student.dto.response.StudentResponse;
 import com.example.courses.student.entity.StudentEntity;
-import com.example.courses.student.exceptions.BadRequestException;
+import com.example.courses.base.exceptions.BadRequestException;
 import com.example.courses.student.exceptions.StudentAlreadyExistException;
 import com.example.courses.student.exceptions.StudentNotFoundException;
 import com.example.courses.student.repository.StudentRepository;

@@ -1,0 +1,17 @@
+package com.example.courses.course.dto.request;
+
+import com.example.courses.course.entity.CourseEntity;
+import lombok.Data;
+
+@Data
+public class CreateCourseRequest {
+    private String title;
+    private String description;
+
+    public CourseEntity entity(){
+        return CourseEntity.builder()
+                .title(title)
+                .description(description)
+                .build();
+    }
+}
