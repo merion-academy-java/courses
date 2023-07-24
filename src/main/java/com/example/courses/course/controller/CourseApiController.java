@@ -2,11 +2,14 @@ package com.example.courses.course.controller;
 
 import com.example.courses.course.dto.request.CreateCourseRequest;
 import com.example.courses.course.dto.request.EditCourseRequest;
+import com.example.courses.course.dto.response.CourseFullResponse;
 import com.example.courses.course.dto.response.CourseResponse;
 import com.example.courses.course.entity.CourseEntity;
 import com.example.courses.course.exception.CourseNotFoundException;
 import com.example.courses.course.repository.CourseRepository;
 import com.example.courses.course.routes.CourseRoutes;
+import com.example.courses.lesson.entity.LessonEntity;
+import com.example.courses.lesson.repository.LessonRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
@@ -15,6 +18,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -22,21 +26,23 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class CourseApiController {
     private final CourseRepository courseRepository;
+    private final LessonRepository lessonRepository;
 
     @PostMapping(CourseRoutes.CREATE)
-    public CourseResponse create(@RequestBody CreateCourseRequest request) {
+    public CourseFullResponse create(@RequestBody CreateCourseRequest request) {
         CourseEntity entity = courseRepository.save(request.entity());
-        return CourseResponse.of(entity);
+        return CourseFullResponse.of(entity, new ArrayList<>());
     }
 
     @GetMapping(CourseRoutes.BY_ID)
-    public CourseResponse findById(@PathVariable Long id)  {
+    public CourseFullResponse findById(@PathVariable Long id) {
         CourseEntity entity = courseRepository.findById(id).orElseThrow(CourseNotFoundException::new);
-        return CourseResponse.of(entity);
+        List<LessonEntity> lessons = lessonRepository.findByCourseId(id);
+        return CourseFullResponse.of(entity, lessons);
     }
 
     @PutMapping(CourseRoutes.BY_ID)
-    public CourseResponse edit(@PathVariable Long id, @RequestBody EditCourseRequest request) {
+    public CourseFullResponse edit(@PathVariable Long id, @RequestBody EditCourseRequest request) {
         CourseEntity entity = courseRepository.findById(id).orElseThrow(CourseNotFoundException::new);
 
         entity.setTitle(request.getTitle());
@@ -44,12 +50,16 @@ public class CourseApiController {
 
         entity = courseRepository.save(entity);
 
-        return CourseResponse.of(entity);
+        List<LessonEntity> lessons = lessonRepository.findByCourseId(id);
+        return CourseFullResponse.of(entity, lessons);
     }
 
     @DeleteMapping(CourseRoutes.BY_ID)
     public String delete(@PathVariable Long id) {
-         courseRepository.deleteById(id);
+        List<LessonEntity> lessons = lessonRepository.findByCourseId(id);
+        for(LessonEntity lesson : lessons) lessonRepository.deleteById(lesson.getId());
+
+        courseRepository.deleteById(id);
         return HttpStatus.OK.name();
     }
 
@@ -75,4 +85,6 @@ public class CourseApiController {
                 .map(CourseResponse::of)
                 .collect(Collectors.toList());
     }
+
+
 }
